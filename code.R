@@ -74,10 +74,50 @@ tab %>% separate(x, c("feet", "inches"), sep = "'")
 tab %>% extract(x, c("feet", "inches"), regex = "(\\d)'(\\d{1,2})")
 
 
+library(rvest)
+library(tidyverse)
+library(stringr)
+url <- "https://en.wikipedia.org/w/index.php?title=Opinion_polling_for_the_United_Kingdom_European_Union_membership_referendum&oldid=896735054"
+tab <- read_html(url) %>% html_nodes("table")
+polls <- tab[[5]] %>% html_table(fill = TRUE)
+
+n <- str_which(polls$Remain, "%")
+
+polls <- polls[n, ]
+setNames(polls, c("dates", "remain", "leave", "undecided", "lead", "samplesize", "pollster", "poll_type", "notes"))
+nrow(polls)
+library(tidytext)
+install.packages("tidytext")
 
 
+library(dslabs)
+library(lubridate)
+options(digits = 3)    # 3 significant digits
 
+data("brexit_polls")
 
+sum(round_date(brexit_polls$enddate, unit="week") == "2016-06-12")
 
+brexit_polls %>% mutate(weekday = weekdays(enddate)) %>%group_by(weekday) %>% summarize(n())
 
+library(tidyverse)
+library(gutenbergr)
+library(tidytext)
+options(digits = 3)
+                                                              
+str_detect(gutenberg_metadata$title, "Pride and Prejudice")
+gutenberg_works(title == "Pride and Prejudice")
+
+words <-gutenberg_download(1342) %>% unnest_tokens(word, text)
+words <-words %>% filter(!word %in% stop_words$word) 
+# or use anti_join(stop_words)
+
+words <-words %>% filter(!str_detect(word, "//d"))
+
+words %>% count(word) %>% filter(n>100) %>%arrange(desc(n))
+# or use top(1, n)
+
+afinn <- get_sentiments("afinn")
+afinn_sentiments <- inner_join(words, afinn)
+afinn_sentiments %>% filter (value >0) %>% nrow()
 
